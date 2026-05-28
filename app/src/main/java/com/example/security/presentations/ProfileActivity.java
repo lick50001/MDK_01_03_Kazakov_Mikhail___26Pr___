@@ -43,10 +43,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         loadUserData();
 
-        btnLogout.setOnClickListener(v ->{
-            startActivity(new Intent(this, LogInActivity.class));
-            finish();
-        });
+        btnLogout.setOnClickListener(v -> logout());
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -107,5 +104,16 @@ public class ProfileActivity extends AppCompatActivity {
                 });
         userGet.execute();
 
+    }
+
+    private void logout() {
+        SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+        prefs.edit()
+                .remove("auth_token")
+                .putBoolean("use_biometric", false)
+                .apply();
+
+        startActivity(new Intent(this, LogInActivity.class));
+        finish();
     }
 }
