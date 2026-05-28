@@ -1,44 +1,47 @@
 package com.example.security;
 
 import android.content.Context;
-import android.hardware.biometrics.BiometricManager;
-import android.hardware.biometrics.BiometricPrompt;
-import android.util.Log;
+import android.widget.Toast;
 
+import androidx.biometric.BiometricManager;
+import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 
 import java.util.concurrent.Executor;
 
 public class BiometricsHelper {
-    Context context;
-    Executor executor;
-    BiometricPrompt biometricPrompt;
-    BiometricPrompt.AuthenticationCallback callback;
-    BiometricPrompt.PromptInfo promptInfo;
 
-    public BiometricsHelper(MainActivity activity, BiometricPrompt.AuthenticationCallback callback){
-        this.context = activity.getApplicationContext();
-        this.callback = callback;
-        this.executor = ContextCompat.getMainExecutor(activity);
+    private final BiometricPrompt biometricPrompt;
+    private final BiometricPrompt.PromptInfo promptInfo;
+    private final Context context;
 
-        biometricPrompt = new BiometricPrompt(activity, this.executor, this.callback);
+    public BiometricsHelper(Context context, BiometricPrompt.AuthenticationCallback callback) {
+        this.context = context;
+
+        Executor executor = ContextCompat.getMainExecutor(context);
+        if (!(context instanceof androidx.appcompat.app.AppCompatActivity)) {
+            throw new IllegalArgumentException("Context must be an AppCompatActivity");
+        }
+
+        biometricPrompt = new BiometricPrompt((androidx.appcompat.app.AppCompatActivity) context, executor, callback);
 
         promptInfo = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Авторизация по отпечатку")
                 .setSubtitle("Приложите палец к сканеру")
                 .setDescription("Подтвердите личность для входа")
-                .setNegativeButoonText("Отмена")
+                .setNegativeButtonText("Отмена")
                 .build();
     }
 
-    public void show(){
-        if (isBiometricAvailable()){
+    public void show() {
+        if (isBiometricAvailable()) {
             biometricPrompt.authenticate(promptInfo);
-        }else
-            Log.d("BiometricsHelper", "Биометрия недоступна на устройстве");
+        }else {
+            Toast.makeText(context, "Биометрия недоступна или не настроена", Toast.LENGTH_LONG).show();
+        }
     }
 
-    boolean isBiometricAvailable(){
+    private boolean isBiometricAvailable() {
         BiometricManager biometricManager = BiometricManager.from(context);
         return biometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
     }
